@@ -1,4 +1,4 @@
-use bevy::{prelude::*};
+use bevy::prelude::*;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_simple_scroll_view::*;
 
@@ -38,21 +38,19 @@ fn add_content(mut commands: Commands, q: Query<Entity, Added<ScrollViewContent>
     for e in q.iter() {
         commands.entity(e).with_children(|parent| {
             for _ in 0..10 {
-                parent.spawn(
-                    NodeBundle {
-                        style: Style {
-                            width: Val::Px(200.0),
-                            height: Val::Px(200.0),
-                            margin: UiRect::all(Val::Px(5.0)),
-                            border: UiRect::all(Val::Px(5.0)),
-                            padding: UiRect::all(Val::Px(5.0)),
-                            ..default()
-                        },
-                        border_color: BORDER_COLOR_ACTIVE.into(),
-                        background_color: BACKGROUND_COLOR.into(),
+                parent.spawn(NodeBundle {
+                    style: Style {
+                        width: Val::Px(200.0),
+                        height: Val::Px(200.0),
+                        margin: UiRect::all(Val::Px(5.0)),
+                        border: UiRect::all(Val::Px(5.0)),
+                        padding: UiRect::all(Val::Px(5.0)),
                         ..default()
                     },
-                );
+                    border_color: BORDER_COLOR_ACTIVE.into(),
+                    background_color: BACKGROUND_COLOR.into(),
+                    ..default()
+                });
             }
         });
     }

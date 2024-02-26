@@ -59,15 +59,21 @@ pub fn create_scroll_view(mut commands: Commands, q: Query<Entity, Added<ScrollV
 
 fn input_mouse_pressed_move(
     mut motion_evr: EventReader<MouseMotion>,
-    mut q: Query<(Entity, &mut Style, &Interaction), With<ScrollViewport>>,
+    mut q: Query<(&Children, &Interaction), With<ScrollViewport>>,
+    mut content_q: Query<&mut Style, With<ScrollViewContent>>,
 ) {
     for evt in motion_evr.read() {
         info!("{:?}", evt);
-        for (_e, mut style, &interaction) in q.iter_mut() {
-            if interaction == Interaction::Pressed {
-                style.top = match style.top {
-                    Val::Px(px) => Val::Px(px + evt.delta.y),
-                    _ => Val::Px(0.0),
+        for (children, &interaction) in q.iter_mut() {
+            if interaction != Interaction::Pressed {
+                continue;
+            }
+            for &child in children.iter() {
+                if let Ok(mut style) = content_q.get_mut(child) {
+                    style.top = match style.top {
+                        Val::Px(px) => Val::Px(px + evt.delta.y),
+                        _ => Val::Px(0.0),
+                    }
                 }
             }
         }
