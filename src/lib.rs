@@ -1,4 +1,7 @@
-use bevy::{input::mouse::MouseMotion, prelude::*};
+use bevy::{
+    input::mouse::{MouseMotion, MouseWheel},
+    prelude::*,
+};
 
 /// A `Plugin` providing the systems and components required to make a ScrollView work.
 pub struct ScrollViewPlugin;
@@ -8,7 +11,10 @@ impl Plugin for ScrollViewPlugin {
         app.register_type::<ScrollView>()
             .register_type::<ScrollViewport>()
             .register_type::<ScrollViewContent>()
-            .add_systems(Update, (create_scroll_view, input_mouse_pressed_move));
+            .add_systems(
+                Update,
+                (create_scroll_view, input_mouse_pressed_move, scroll_events),
+            );
     }
 }
 
@@ -61,6 +67,39 @@ fn input_mouse_pressed_move(
             if interaction == Interaction::Pressed {
                 style.top = match style.top {
                     Val::Px(px) => Val::Px(px + evt.delta.y),
+                    _ => Val::Px(0.0),
+                }
+            }
+        }
+    }
+}
+
+fn scroll_events(
+    mut scroll_evr: EventReader<MouseWheel>,
+    mut q: Query<(Entity, &mut Style, &Interaction), With<ScrollViewport>>,
+) {
+    use bevy::input::mouse::MouseScrollUnit;
+    for ev in scroll_evr.read() {
+        let y = match ev.unit {
+            MouseScrollUnit::Line => {
+                println!(
+                    "Scroll (line units): vertical: {}, horizontal: {}",
+                    ev.y, ev.x
+                );
+                ev.y
+            }
+            MouseScrollUnit::Pixel => {
+                println!(
+                    "Scroll (pixel units): vertical: {}, horizontal: {}",
+                    ev.y, ev.x
+                );
+                ev.y
+            }
+        };
+        for (_e, mut style, &interaction) in q.iter_mut() {
+            if interaction == Interaction::Hovered {
+                style.top = match style.top {
+                    Val::Px(px) => Val::Px(px + y),
                     _ => Val::Px(0.0),
                 }
             }
