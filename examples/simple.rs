@@ -1,4 +1,4 @@
-use bevy::{input::mouse::MouseMotion, prelude::*, ui::Interaction};
+use bevy::{prelude::*};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_simple_scroll_view::*;
 
@@ -39,7 +39,7 @@ fn add_content(mut commands: Commands, q: Query<Entity, Added<ScrollViewContent>
         commands.entity(e).with_children(|parent| {
             for _ in 0..10 {
                 parent.spawn(
-                    (NodeBundle {
+                    NodeBundle {
                         style: Style {
                             width: Val::Px(200.0),
                             height: Val::Px(200.0),
@@ -51,25 +51,9 @@ fn add_content(mut commands: Commands, q: Query<Entity, Added<ScrollViewContent>
                         border_color: BORDER_COLOR_ACTIVE.into(),
                         background_color: BACKGROUND_COLOR.into(),
                         ..default()
-                    }),
+                    },
                 );
             }
         });
-    }
-}
-
-fn input_mouse_scroll(
-    mut motion_evr: EventReader<MouseMotion>,
-    mut q: Query<(Entity, &mut Style, &Interaction), With<ScrollViewport>>,
-) {
-    for evt in motion_evr.read() {
-        for (e, mut style, &interaction) in q.iter_mut() {
-            if interaction == Interaction::Hovered {
-                style.top = match style.top {
-                    Val::Px(px) => Val::Px(px + evt.delta.y),
-                    _ => Val::Px(0.0),
-                }
-            }
-        }
     }
 }

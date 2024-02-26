@@ -8,7 +8,7 @@ impl Plugin for ScrollViewPlugin {
         app.register_type::<ScrollView>()
             .register_type::<ScrollViewport>()
             .register_type::<ScrollViewContent>()
-            .add_systems(Update, (create_scroll_view, input_mouse_scroll));
+            .add_systems(Update, (create_scroll_view, input_mouse_pressed_move));
     }
 }
 
@@ -33,6 +33,7 @@ pub fn create_scroll_view(mut commands: Commands, q: Query<Entity, Added<ScrollV
                     ..Default::default()
                 },
                 ScrollViewport,
+                Interaction::None,
             ))
             .with_children(|v| {
                 v.spawn((
@@ -43,20 +44,21 @@ pub fn create_scroll_view(mut commands: Commands, q: Query<Entity, Added<ScrollV
                         },
                         ..default()
                     },
-                    ScrollViewContent(e.clone()),
+                    ScrollViewContent(e),
                 ));
             });
         });
     }
 }
 
-fn input_mouse_scroll(
+fn input_mouse_pressed_move(
     mut motion_evr: EventReader<MouseMotion>,
     mut q: Query<(Entity, &mut Style, &Interaction), With<ScrollViewport>>,
 ) {
     for evt in motion_evr.read() {
-        for (e, mut style, &interaction) in q.iter_mut() {
-            if interaction == Interaction::Hovered {
+        info!("{:?}", evt);
+        for (_e, mut style, &interaction) in q.iter_mut() {
+            if interaction == Interaction::Pressed {
                 style.top = match style.top {
                     Val::Px(px) => Val::Px(px + evt.delta.y),
                     _ => Val::Px(0.0),
