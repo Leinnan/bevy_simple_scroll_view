@@ -21,8 +21,18 @@ impl Plugin for ScrollViewPlugin {
 #[derive(Component, Default, Debug, Reflect)]
 pub struct ScrollView;
 
-#[derive(Component, Default, Debug, Reflect)]
-pub struct ScrollViewport;
+#[derive(Component, Debug, Reflect)]
+pub struct ScrollViewport {
+    pub scroll_speed: f32,
+}
+
+impl Default for ScrollViewport {
+    fn default() -> Self {
+        Self {
+            scroll_speed: 500.0,
+        }
+    }
+}
 
 #[derive(Component, Debug, Reflect)]
 pub struct ScrollViewContent(pub Entity);
@@ -38,7 +48,7 @@ pub fn create_scroll_view(mut commands: Commands, q: Query<Entity, Added<ScrollV
                     },
                     ..Default::default()
                 },
-                ScrollViewport,
+                ScrollViewport::default(),
                 Interaction::None,
             ))
             .with_children(|v| {
@@ -82,7 +92,8 @@ fn input_mouse_pressed_move(
 
 fn scroll_events(
     mut scroll_evr: EventReader<MouseWheel>,
-    mut q: Query<(Entity, &mut Style, &Interaction), With<ScrollViewport>>,
+    mut q: Query<(&mut Style, &Interaction, &ScrollViewport), With<ScrollViewport>>,
+    time: Res<Time>,
 ) {
     use bevy::input::mouse::MouseScrollUnit;
     for ev in scroll_evr.read() {
@@ -102,8 +113,9 @@ fn scroll_events(
                 ev.y
             }
         };
-        for (_e, mut style, &interaction) in q.iter_mut() {
+        for (mut style, &interaction, scroll_view) in q.iter_mut() {
             if interaction == Interaction::Hovered {
+                let y = y * time.delta().as_secs_f32() * scroll_view.scroll_speed;
                 style.top = match style.top {
                     Val::Px(px) => Val::Px(px + y),
                     _ => Val::Px(0.0),
