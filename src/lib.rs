@@ -28,7 +28,9 @@ pub struct ScrollViewport {
 
 impl Default for ScrollViewport {
     fn default() -> Self {
-        Self { scroll_speed: 500.0 }
+        Self {
+            scroll_speed: 500.0,
+        }
     }
 }
 
