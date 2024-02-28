@@ -31,7 +31,7 @@ pub struct ScrollView {
 impl Default for ScrollView {
     fn default() -> Self {
         Self {
-            scroll_speed: 500.0,
+            scroll_speed: 100.0,
         }
     }
 }
