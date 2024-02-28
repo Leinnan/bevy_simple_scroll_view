@@ -7,5 +7,5 @@ More details available in [simple.rs example](examples/simple.rs).
 ## Installation
 
 ```sh
-cargo add --git https://github.com/Leinnan/bevy_ehttp.git
+cargo add --git https://github.com/Leinnan/bevy_simple_scroll_view.git
 ```
