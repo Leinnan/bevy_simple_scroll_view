@@ -8,8 +8,7 @@ pub struct ScrollViewPlugin;
 
 impl Plugin for ScrollViewPlugin {
     fn build(&self, app: &mut App) {
-        app.register_type::<ScrollView>()
-            .register_type::<ScrollViewport>()
+        app.register_type::<ScrollViewport>()
             .register_type::<ScrollViewContent>()
             .add_systems(
                 Update,
@@ -17,9 +16,6 @@ impl Plugin for ScrollViewPlugin {
             );
     }
 }
-
-#[derive(Component, Default, Debug, Reflect)]
-pub struct ScrollView;
 
 #[derive(Component, Debug, Reflect)]
 pub struct ScrollViewport {
@@ -39,23 +35,17 @@ pub struct ScrollViewContent {
     pub pos_y: f32,
 }
 
-pub fn create_scroll_view(mut commands: Commands, q: Query<Entity, Added<ScrollView>>) {
-    for e in q.iter() {
-        commands.entity(e).with_children(|p| {
-            p.spawn((
-                NodeBundle {
-                    style: Style {
-                        overflow: Overflow::clip(),
-                        max_height: Val::Percent(100.0),
-                        max_width: Val::Percent(100.0),
-                        align_items: AlignItems::Start,
-                        ..default()
-                    },
-                    ..Default::default()
-                },
-                ScrollViewport::default(),
-                Interaction::None,
-            ))
+pub fn create_scroll_view(
+    mut commands: Commands,
+    mut q: Query<(Entity, &mut Style), Added<ScrollViewport>>,
+) {
+    for (e, mut style) in q.iter_mut() {
+        style.overflow = Overflow::clip();
+        style.align_items = AlignItems::Start;
+
+        commands
+            .entity(e)
+            .insert(Interaction::None)
             .with_children(|v| {
                 v.spawn((
                     NodeBundle {
@@ -68,7 +58,6 @@ pub fn create_scroll_view(mut commands: Commands, q: Query<Entity, Added<ScrollV
                     ScrollViewContent { pos_y: 0.0 },
                 ));
             });
-        });
     }
 }
 

@@ -19,8 +19,8 @@ fn main() {
 
 fn prepare(mut commands: Commands) {
     commands.spawn(Camera2dBundle::default());
-    commands.spawn((
-        NodeBundle {
+    commands
+        .spawn(NodeBundle {
             style: Style {
                 width: Val::Percent(100.0),
                 height: Val::Percent(100.0),
@@ -28,10 +28,23 @@ fn prepare(mut commands: Commands) {
                 justify_content: JustifyContent::Center,
                 ..default()
             },
+            background_color: BackgroundColor(Color::BLUE),
             ..default()
-        },
-        ScrollView,
-    ));
+        })
+        .with_children(|p| {
+            p.spawn((
+                NodeBundle {
+                    style: Style {
+                        width: Val::Percent(80.0),
+                        height: Val::Percent(50.0),
+                        ..default()
+                    },
+                    background_color: BackgroundColor(Color::YELLOW),
+                    ..default()
+                },
+                ScrollViewport::default(),
+            ));
+        });
 }
 
 fn add_content(mut commands: Commands, q: Query<Entity, Added<ScrollViewContent>>) {
