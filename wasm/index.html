@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <title>Scroll view</title>
+  <style>
+    html,
+    body {
+      text-align: center;
+      margin: auto 0;
+      background-color: #292F36;
+    }
+
+    canvas {
+      filter: drop-shadow(#04b5cd 0 0 10px);
+    }
+  </style>
+</head>
+
+<body>
+  <script type="module">
+    import './restart-audio-context.js'
+    import init from './simple.js'
+
+    init().catch((error) => {
+      if (!error.message.startsWith("Using exceptions for control flow, don't mind me. This isn't actually an error!")) {
+        throw error;
+      }
+    });
+  </script>
+</body>
+
+</html>

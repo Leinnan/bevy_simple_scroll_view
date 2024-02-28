@@ -2,6 +2,10 @@
 name = "bevy_simple_scroll_view"
 version = "0.1.0"
 edition = "2021"
+exclude = [".github/","wasm/"]
+categories = ["game-development", "gui"]
+keywords = ["bevy","ui"]
+license = "MIT OR Apache-2.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

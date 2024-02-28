@@ -76,3 +76,41 @@ jobs:
           components: rustfmt
       - name: Run cargo fmt
         run: cargo fmt --all -- --check
+  web_build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    concurrency: 
+      group: ${{ github.head_ref || github.run_id }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ github.ref || github.run_id }}
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - name: Install wasm bindgen
+        uses: baptiste0928/cargo-install@v2
+        with:
+          crate: wasm-bindgen-cli
+      - name: Build
+        run: cargo build --release --example simple --target wasm32-unknown-unknown && wasm-bindgen --out-dir ./out/ --target web ../target/wasm32-unknown-unknown/release/examples/simple.wasm
+      - name: Copy
+        working-directory: ./bevy_forge
+        run: cp -R assets out/ && cp wasm/* out/ && ls -R out
+      - name: Push
+        uses: s0/git-publish-subdir-action@develop
+        env:
+          SQUASH_HISTORY: true
+          REPO: self
+          BRANCH: gh-pages # The branch name where you want to push the assets
+          FOLDER: ./bevy_forge/out # The directory where your assets are generated
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # GitHub will automatically add this - you don't need to bother getting a token
+          MESSAGE: "Build: ({sha}) {msg}" # The commit message
