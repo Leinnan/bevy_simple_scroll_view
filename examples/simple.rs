@@ -13,7 +13,7 @@ fn main() {
             WorldInspectorPlugin::new(),
         ))
         .add_systems(Startup, prepare)
-        .add_systems(Update, (add_content, reset_scroll))
+        .add_systems(Update, reset_scroll)
         .run();
 }
 
@@ -24,11 +24,10 @@ fn prepare(mut commands: Commands) {
             style: Style {
                 width: Val::Percent(100.0),
                 height: Val::Percent(100.0),
-                align_items: AlignItems::Center,
-                justify_content: JustifyContent::Center,
+                margin: UiRect::all(Val::Px(15.0)),
                 ..default()
             },
-            background_color: BackgroundColor(Color::BLUE),
+            background_color: Color::rgb(0.05, 0.05, 0.05).into(),
             ..default()
         })
         .with_children(|p| {
@@ -38,13 +37,17 @@ fn prepare(mut commands: Commands) {
                     padding: UiRect::all(Val::Px(5.0)),
                     ..default()
                 },
-                background_color: BackgroundColor(Color::GOLD),
+                background_color: BORDER_COLOR_ACTIVE.into(),
                 ..default()
             })
             .with_children(|p| {
                 p.spawn(TextBundle::from_section(
                     "Reset scroll",
-                    TextStyle::default(),
+                    TextStyle {
+                        font_size: 25.0,
+                        color: Color::ANTIQUE_WHITE,
+                        ..default()
+                    },
                 ));
             });
             p.spawn((
@@ -52,9 +55,10 @@ fn prepare(mut commands: Commands) {
                     style: Style {
                         width: Val::Percent(80.0),
                         height: Val::Percent(50.0),
+                        margin: UiRect::all(Val::Px(15.0)),
                         ..default()
                     },
-                    background_color: BackgroundColor(Color::YELLOW),
+                    background_color: BACKGROUND_COLOR.into(),
                     ..default()
                 },
                 ScrollView::default(),
@@ -69,7 +73,37 @@ fn prepare(mut commands: Commands) {
                         ..default()
                     },
                     ScrollableContent::default(),
-                ));
+                ))
+                .with_children(|scroll_area| {
+                    for i in 0..10 {
+                        scroll_area
+                            .spawn(NodeBundle {
+                                style: Style {
+                                    width: Val::Percent(150.0),
+                                    margin: UiRect::all(Val::Px(5.0)),
+                                    border: UiRect::all(Val::Px(3.0)),
+                                    padding: UiRect::all(Val::Px(25.0)),
+                                    ..default()
+                                },
+                                border_color: BORDER_COLOR_ACTIVE.into(),
+                                background_color: BACKGROUND_COLOR.into(),
+                                ..default()
+                            })
+                            .with_children(|p| {
+                                p.spawn(
+                                    TextBundle::from_section(
+                                        format!("Nr {}", i),
+                                        TextStyle {
+                                            font_size: 25.0,
+                                            color: Color::ANTIQUE_WHITE,
+                                            ..default()
+                                        },
+                                    )
+                                    .with_text_justify(JustifyText::Center),
+                                );
+                            });
+                    }
+                });
             });
         });
 }
@@ -80,32 +114,9 @@ fn reset_scroll(
 ) {
     for (_, interaction) in q.iter() {
         if interaction == &Interaction::Pressed {
-            info!("TEST");
             for mut scroll in scrolls_q.iter_mut() {
                 scroll.pos_y = 0.0;
             }
         }
-    }
-}
-
-fn add_content(mut commands: Commands, q: Query<Entity, Added<ScrollableContent>>) {
-    for e in q.iter() {
-        commands.entity(e).with_children(|parent| {
-            for _ in 0..10 {
-                parent.spawn(NodeBundle {
-                    style: Style {
-                        width: Val::Px(200.0),
-                        height: Val::Px(200.0),
-                        margin: UiRect::all(Val::Px(5.0)),
-                        border: UiRect::all(Val::Px(5.0)),
-                        padding: UiRect::all(Val::Px(5.0)),
-                        ..default()
-                    },
-                    border_color: BORDER_COLOR_ACTIVE.into(),
-                    background_color: BACKGROUND_COLOR.into(),
-                    ..default()
-                });
-            }
-        });
     }
 }

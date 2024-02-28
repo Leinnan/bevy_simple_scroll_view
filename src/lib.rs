@@ -48,6 +48,8 @@ pub fn create_scroll_view(
     for (e, mut style) in q.iter_mut() {
         style.overflow = Overflow::clip();
         style.align_items = AlignItems::Start;
+        style.align_self = AlignSelf::Stretch;
+        style.flex_direction = FlexDirection::Row;
         commands.entity(e).insert(Interaction::None);
     }
 }
