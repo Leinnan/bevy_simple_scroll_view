@@ -13,7 +13,7 @@ fn main() {
             WorldInspectorPlugin::new(),
         ))
         .add_systems(Startup, prepare)
-        .add_systems(Update, add_content)
+        .add_systems(Update, (add_content, reset_scroll))
         .run();
 }
 
@@ -32,6 +32,21 @@ fn prepare(mut commands: Commands) {
             ..default()
         })
         .with_children(|p| {
+            p.spawn(ButtonBundle {
+                style: Style {
+                    margin: UiRect::all(Val::Px(5.0)),
+                    padding: UiRect::all(Val::Px(5.0)),
+                    ..default()
+                },
+                background_color: BackgroundColor(Color::GOLD),
+                ..default()
+            })
+            .with_children(|p| {
+                p.spawn(TextBundle::from_section(
+                    "Reset scroll",
+                    TextStyle::default(),
+                ));
+            });
             p.spawn((
                 NodeBundle {
                     style: Style {
@@ -45,6 +60,20 @@ fn prepare(mut commands: Commands) {
                 ScrollView::default(),
             ));
         });
+}
+
+fn reset_scroll(
+    q: Query<(&Button, &Interaction), Changed<Interaction>>,
+    mut scrolls_q: Query<&mut ScrollableContent>,
+) {
+    for (_, interaction) in q.iter() {
+        if interaction == &Interaction::Pressed {
+            info!("TEST");
+            for mut scroll in scrolls_q.iter_mut() {
+                scroll.pos_y = 0.0;
+            }
+        }
+    }
 }
 
 fn add_content(mut commands: Commands, q: Query<Entity, Added<ScrollableContent>>) {
