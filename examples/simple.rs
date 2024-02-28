@@ -42,12 +42,12 @@ fn prepare(mut commands: Commands) {
                     background_color: BackgroundColor(Color::YELLOW),
                     ..default()
                 },
-                ScrollViewport::default(),
+                ScrollView::default(),
             ));
         });
 }
 
-fn add_content(mut commands: Commands, q: Query<Entity, Added<ScrollViewContent>>) {
+fn add_content(mut commands: Commands, q: Query<Entity, Added<ScrollableContent>>) {
     for e in q.iter() {
         commands.entity(e).with_children(|parent| {
             for _ in 0..10 {
