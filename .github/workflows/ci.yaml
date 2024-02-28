@@ -103,8 +103,7 @@ jobs:
       - name: Build
         run: cargo build --release --example simple --target wasm32-unknown-unknown && wasm-bindgen --out-dir ./out/ --target web target/wasm32-unknown-unknown/release/examples/simple.wasm
       - name: Copy
-        working-directory: ./bevy_forge
-        run: cp -R assets out/ && cp wasm/* out/ && ls -R out
+        run: cp wasm/* out/ && ls -R out
       - name: Push
         uses: s0/git-publish-subdir-action@develop
         env:
