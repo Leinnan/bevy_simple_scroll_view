@@ -58,7 +58,19 @@ fn prepare(mut commands: Commands) {
                     ..default()
                 },
                 ScrollView::default(),
-            ));
+            ))
+            .with_children(|p| {
+                p.spawn((
+                    NodeBundle {
+                        style: Style {
+                            flex_direction: bevy::ui::FlexDirection::Column,
+                            ..default()
+                        },
+                        ..default()
+                    },
+                    ScrollableContent::default(),
+                ));
+            });
         });
 }
 

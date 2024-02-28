@@ -36,7 +36,7 @@ impl Default for ScrollView {
     }
 }
 
-#[derive(Component, Debug, Reflect)]
+#[derive(Component, Debug, Reflect, Default)]
 pub struct ScrollableContent {
     pub pos_y: f32,
 }
@@ -48,22 +48,7 @@ pub fn create_scroll_view(
     for (e, mut style) in q.iter_mut() {
         style.overflow = Overflow::clip();
         style.align_items = AlignItems::Start;
-
-        commands
-            .entity(e)
-            .insert(Interaction::None)
-            .with_children(|v| {
-                v.spawn((
-                    NodeBundle {
-                        style: Style {
-                            flex_direction: bevy::ui::FlexDirection::Column,
-                            ..default()
-                        },
-                        ..default()
-                    },
-                    ScrollableContent { pos_y: 0.0 },
-                ));
-            });
+        commands.entity(e).insert(Interaction::None);
     }
 }
 
