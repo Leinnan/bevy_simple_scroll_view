@@ -8,8 +8,7 @@ keywords = ["bevy","ui"]
 repository = "https://github.com/Leinnan/bevy_simple_scroll_view"
 homepage = "https://github.com/Leinnan/bevy_simple_scroll_view"
 license = "MIT OR Apache-2.0"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+description = "Simple to use plugin implementing ScrollView into Bevy engine."
 
 [dependencies.bevy]
 version = "0.13"
