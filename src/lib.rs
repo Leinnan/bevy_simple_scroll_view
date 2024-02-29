@@ -10,7 +10,7 @@ use bevy::{
 /// # Example
 /// ```
 /// use bevy::prelude::*;
-/// use bevy_simple_scroll_view::;
+/// use bevy_simple_scroll_view::*;
 ///
 /// App::new()
 ///     .add_plugins((DefaultPlugins,ScrollViewPlugin))
