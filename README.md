@@ -6,7 +6,7 @@
 [![Following released Bevy versions](https://img.shields.io/badge/Bevy%20tracking-released%20version-lightblue)](https://bevyengine.org/learn/quick-start/plugin-development/#main-branch-tracking)
 [![crates.io](https://img.shields.io/crates/d/bevy_simple_scroll_view.svg)](https://crates.io/crates/bevy_simple_scroll_view)
 
-Simple to use plugin implementing ScrollView into Bevy engine. Supports scroll using dragging and scrolling.
+Simple to use plugin implementing ScrollView into Bevy engine. Supports scroll using dragging and scrolling, should work on all platforms.
 
 ![Gif with plugin in action](record.gif)
 
@@ -28,9 +28,8 @@ Please keep PRs small and scoped to a single feature or fix.
 
 ## Planned features
 
-- one big thing missing is support for the [TouchInput events](https://docs.rs/bevy/latest/bevy/input/touch/struct.TouchInput.html) so the mobile platforms would work well.
 - horizontal scroll, should be pretty simple.
-- **DOCS**
+- **MORE DOCS**
 - _optional_ if there would be simple enough implementation I would consider adding scrollbars.
 
 ## Bevy compatibility table
