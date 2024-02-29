@@ -2,9 +2,11 @@
 name = "bevy_simple_scroll_view"
 version = "0.1.0"
 edition = "2021"
-exclude = [".github/","wasm/"]
+exclude = [".github/","wasm/", "record.gif"]
 categories = ["game-development", "gui"]
 keywords = ["bevy","ui"]
+repository = "https://github.com/Leinnan/bevy_simple_scroll_view"
+homepage = "https://github.com/Leinnan/bevy_simple_scroll_view"
 license = "MIT OR Apache-2.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -12,12 +14,9 @@ license = "MIT OR Apache-2.0"
 [dependencies.bevy]
 version = "0.13"
 default-features = false
-features = ["bevy_ui", "bevy_asset", "bevy_text"]
+features = ["bevy_ui", "bevy_asset", "bevy_text", "bevy_winit"]
 
 [dev-dependencies.bevy]
 version = "0.13"
-default-features = true
-
-[dev-dependencies]
-bevy_egui = "0.25"
-bevy-inspector-egui = "0.23"
+default-features = false
+features = ["bevy_ui", "bevy_asset", "bevy_text", "bevy_winit", "default_font"]

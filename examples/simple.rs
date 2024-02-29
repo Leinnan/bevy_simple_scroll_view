@@ -1,17 +1,14 @@
 use bevy::prelude::*;
-use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_simple_scroll_view::*;
 
-const BORDER_COLOR_ACTIVE: Color = Color::rgb(0.75, 0.52, 0.99);
-const BACKGROUND_COLOR: Color = Color::rgb(0.15, 0.15, 0.15);
+const CLR_1: Color = Color::rgb(0.168, 0.168, 0.168);
+const CLR_2: Color = Color::rgb(0.109, 0.109, 0.109);
+const CLR_3: Color = Color::rgb(0.569, 0.592, 0.647);
+const CLR_4: Color = Color::rgb(0.902, 0.4, 0.004);
 
 fn main() {
     App::new()
-        .add_plugins((
-            DefaultPlugins,
-            ScrollViewPlugin,
-            WorldInspectorPlugin::new(),
-        ))
+        .add_plugins((DefaultPlugins, ScrollViewPlugin))
         .add_systems(Startup, prepare)
         .add_systems(Update, reset_scroll)
         .run();
@@ -24,20 +21,24 @@ fn prepare(mut commands: Commands) {
             style: Style {
                 width: Val::Percent(100.0),
                 height: Val::Percent(100.0),
-                margin: UiRect::all(Val::Px(15.0)),
+                padding: UiRect::all(Val::Px(15.0)),
                 ..default()
             },
-            background_color: Color::rgb(0.05, 0.05, 0.05).into(),
+            background_color: CLR_1.into(),
             ..default()
         })
         .with_children(|p| {
             p.spawn(ButtonBundle {
                 style: Style {
-                    margin: UiRect::all(Val::Px(5.0)),
-                    padding: UiRect::all(Val::Px(5.0)),
+                    margin: UiRect::all(Val::Px(15.0)),
+                    padding: UiRect::all(Val::Px(15.0)),
+                    max_height: Val::Px(100.0),
+                    border: UiRect::all(Val::Px(3.0)),
+                    align_items: AlignItems::Center,
                     ..default()
                 },
-                background_color: BORDER_COLOR_ACTIVE.into(),
+                background_color: CLR_2.into(),
+                border_color: CLR_4.into(),
                 ..default()
             })
             .with_children(|p| {
@@ -45,7 +46,7 @@ fn prepare(mut commands: Commands) {
                     "Reset scroll",
                     TextStyle {
                         font_size: 25.0,
-                        color: Color::ANTIQUE_WHITE,
+                        color: CLR_4,
                         ..default()
                     },
                 ));
@@ -54,11 +55,10 @@ fn prepare(mut commands: Commands) {
                 NodeBundle {
                     style: Style {
                         width: Val::Percent(80.0),
-                        height: Val::Percent(50.0),
                         margin: UiRect::all(Val::Px(15.0)),
                         ..default()
                     },
-                    background_color: BACKGROUND_COLOR.into(),
+                    background_color: CLR_2.into(),
                     ..default()
                 },
                 ScrollView::default(),
@@ -68,6 +68,7 @@ fn prepare(mut commands: Commands) {
                     NodeBundle {
                         style: Style {
                             flex_direction: bevy::ui::FlexDirection::Column,
+                            width: Val::Percent(100.0),
                             ..default()
                         },
                         ..default()
@@ -75,18 +76,17 @@ fn prepare(mut commands: Commands) {
                     ScrollableContent::default(),
                 ))
                 .with_children(|scroll_area| {
-                    for i in 0..10 {
+                    for i in 0..21 {
                         scroll_area
                             .spawn(NodeBundle {
                                 style: Style {
-                                    width: Val::Percent(150.0),
-                                    margin: UiRect::all(Val::Px(5.0)),
-                                    border: UiRect::all(Val::Px(3.0)),
-                                    padding: UiRect::all(Val::Px(25.0)),
+                                    min_width: Val::Px(200.0),
+                                    margin: UiRect::all(Val::Px(15.0)),
+                                    border: UiRect::all(Val::Px(5.0)),
+                                    padding: UiRect::all(Val::Px(30.0)),
                                     ..default()
                                 },
-                                border_color: BORDER_COLOR_ACTIVE.into(),
-                                background_color: BACKGROUND_COLOR.into(),
+                                border_color: CLR_3.into(),
                                 ..default()
                             })
                             .with_children(|p| {
@@ -95,7 +95,7 @@ fn prepare(mut commands: Commands) {
                                         format!("Nr {}", i),
                                         TextStyle {
                                             font_size: 25.0,
-                                            color: Color::ANTIQUE_WHITE,
+                                            color: CLR_3,
                                             ..default()
                                         },
                                     )

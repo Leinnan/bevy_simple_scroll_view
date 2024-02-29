@@ -1,9 +1,21 @@
+#![doc = include_str!("../README.md")]
+
 use bevy::{
     input::mouse::{MouseMotion, MouseWheel},
     prelude::*,
 };
 
 /// A `Plugin` providing the systems and components required to make a ScrollView work.
+///
+/// # Example
+/// ```
+/// use bevy::prelude::*;
+/// use bevy_simple_scroll_view::;
+///
+/// App::new()
+///     .add_plugins((DefaultPlugins,ScrollViewPlugin))
+///     .run();
+/// ```
 pub struct ScrollViewPlugin;
 
 impl Plugin for ScrollViewPlugin {
@@ -15,6 +27,7 @@ impl Plugin for ScrollViewPlugin {
                 (
                     create_scroll_view,
                     input_mouse_pressed_move,
+                    input_touch_pressed_move,
                     scroll_events,
                     scroll_update,
                 )
@@ -23,21 +36,27 @@ impl Plugin for ScrollViewPlugin {
     }
 }
 
+/// Root component of scroll, it should have clipped style.
 #[derive(Component, Debug, Reflect)]
 pub struct ScrollView {
+    /// Field which control speed of the scrolling.
+    /// Could be negative number to implement invert scroll
     pub scroll_speed: f32,
 }
 
 impl Default for ScrollView {
     fn default() -> Self {
         Self {
-            scroll_speed: 100.0,
+            scroll_speed: 200.0,
         }
     }
 }
 
+/// Component containing offset value of the scroll container to the parent.
+/// It is possible to update the field `pos_y` manually to move scrollview to desired location.
 #[derive(Component, Debug, Reflect, Default)]
 pub struct ScrollableContent {
+    /// Scroll container offset to the `ScrollView`.
     pub pos_y: f32,
 }
 
@@ -77,9 +96,30 @@ fn input_mouse_pressed_move(
     }
 }
 
-fn scroll_update(mut q: Query<(&ScrollableContent, &mut Style), Changed<ScrollableContent>>) {
-    for (scroll, mut style) in q.iter_mut() {
-        style.top = Val::Px(scroll.pos_y);
+fn input_touch_pressed_move(
+    touches: Res<Touches>,
+    mut q: Query<(&Children, &Interaction, &Node), With<ScrollView>>,
+    mut content_q: Query<(&mut ScrollableContent, &Node)>,
+) {
+    for t in touches.iter() {
+        let Some(touch) = touches.get_pressed(t.id()) else {
+            continue;
+        };
+
+        for (children, &interaction, node) in q.iter_mut() {
+            if interaction != Interaction::Pressed {
+                continue;
+            }
+            let container_height = node.size().y;
+            for &child in children.iter() {
+                if let Ok(item) = content_q.get_mut(child) {
+                    let mut scroll = item.0;
+                    let max_scroll = (item.1.size().y - container_height).max(0.0);
+                    scroll.pos_y += touch.delta().y;
+                    scroll.pos_y = scroll.pos_y.clamp(-max_scroll, 0.);
+                }
+            }
+        }
     }
 }
 
@@ -113,5 +153,11 @@ fn scroll_events(
                 }
             }
         }
+    }
+}
+
+fn scroll_update(mut q: Query<(&ScrollableContent, &mut Style), Changed<ScrollableContent>>) {
+    for (scroll, mut style) in q.iter_mut() {
+        style.top = Val::Px(scroll.pos_y);
     }
 }
