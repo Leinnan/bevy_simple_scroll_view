@@ -1,10 +1,10 @@
 use bevy::prelude::*;
 use bevy_simple_scroll_view::*;
 
-const CLR_1: Color = Color::rgb(0.168, 0.168, 0.168);
-const CLR_2: Color = Color::rgb(0.109, 0.109, 0.109);
-const CLR_3: Color = Color::rgb(0.569, 0.592, 0.647);
-const CLR_4: Color = Color::rgb(0.902, 0.4, 0.004);
+const CLR_1: Color = Color::srgb(0.168, 0.168, 0.168);
+const CLR_2: Color = Color::srgb(0.109, 0.109, 0.109);
+const CLR_3: Color = Color::srgb(0.569, 0.592, 0.647);
+const CLR_4: Color = Color::srgb(0.902, 0.4, 0.004);
 
 fn main() {
     App::new()
