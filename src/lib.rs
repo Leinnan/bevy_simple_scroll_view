@@ -88,6 +88,7 @@ fn input_mouse_pressed_move(
                 if let Ok(item) = content_q.get_mut(child) {
                     let mut scroll = item.0;
                     let max_scroll = (item.1.size().y - container_height).max(0.0);
+                    info!("CONTAINER {}, max_scroll: {}",container_height,max_scroll);
                     scroll.pos_y += evt.delta.y;
                     scroll.pos_y = scroll.pos_y.clamp(-max_scroll, 0.);
                 }
@@ -115,6 +116,7 @@ fn input_touch_pressed_move(
                 if let Ok(item) = content_q.get_mut(child) {
                     let mut scroll = item.0;
                     let max_scroll = (item.1.size().y - container_height).max(0.0);
+                    info!("CONTAINER {}, max_scroll: {}",container_height,max_scroll);
                     scroll.pos_y += touch.delta().y;
                     scroll.pos_y = scroll.pos_y.clamp(-max_scroll, 0.);
                 }
