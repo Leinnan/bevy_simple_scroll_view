@@ -1,0 +1,158 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Pass the version
+        required: true
+        type: string
+      release_info:
+        description: Information about release
+        required: true
+        type: string
+      dry_run:
+        description: Perform test without releasing
+        type: choice
+        required: true
+        default: "true"
+        options:
+          - "true"
+          - "false"  
+  push:
+    tags:
+      - "[0-9]+.[0-9]+.[0-9]+"
+
+permissions:
+  contents: write
+
+jobs:
+  setup:
+    name: Prepare job settings
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.setup.outputs.version }}
+      dry_run: ${{ steps.setup.outputs.dry_run }}
+      info: ${{ steps.setup.outputs.info }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        if: ${{ github.event_name == 'push' }}
+      - name: Get the release version from the tag and info from commit
+        id: version_push
+        shell: bash
+        if: ${{ github.event_name == 'push' }}
+        run: |
+          echo version=${GITHUB_REF#refs/tags/} >> $GITHUB_OUTPUT
+          echo info=$(git tag -l --format='%(contents)' ${GITHUB_REF#refs/tags/}) >> $GITHUB_OUTPUT
+      - name: Get the release version from the input
+        id: version_dispatch
+        shell: bash
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          echo 
+          echo version=$(echo ${{ inputs.version }} | xargs) >> $GITHUB_OUTPUT
+          echo dry_run=$(echo ${{ inputs.dry_run }} | xargs) >> $GITHUB_OUTPUT
+          echo info="${{ inputs.release_info }}" >> $GITHUB_OUTPUT
+      - name: Setup
+        id: setup
+        shell: bash
+        run: |
+          echo version=$(if [ -n "${{ steps.version_dispatch.outputs.version }}" ]; then echo "${{ steps.version_dispatch.outputs.version }}"; else echo "${{ steps.version_push.outputs.version }}"; fi) >> $GITHUB_OUTPUT
+          echo dry_run=$(if [ -n "${{ steps.version_dispatch.outputs.dry_run }}" ]; then echo "${{ steps.version_dispatch.outputs.dry_run }}"; else echo "false"; fi) >> $GITHUB_OUTPUT
+          echo info=$(if [ -n "${{ steps.version_dispatch.outputs.info }}" ]; then echo "${{ steps.version_dispatch.outputs.info }}"; else echo "${{ steps.version_push.outputs.info }}"; fi) >> $GITHUB_OUTPUT
+      - name: Display settings
+        shell: bash
+        run: echo "Version ${{ steps.setup.outputs.version }}, Dry run- ${{ steps.setup.outputs.dry_run }}, info- ${{ steps.setup.outputs.info }}"
+      - name: Validate input
+        shell: bash
+        run: |
+          if [ -z "${{ steps.setup.outputs.version }}" ]; then exit 1; fi;
+          if [ -z "${{ steps.setup.outputs.dry_run }}" ]; then exit 1; fi;
+          if [ -z "${{ steps.setup.outputs.info }}" ]; then exit 1; fi;
+          if [[ "${{ steps.setup.outputs.version }}" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+).*?$ ]]; then echo "Valid version"; else echo "INVALID VERSION FORMAT!";exit 1; fi;
+  build-and-upload:
+    name: Build and upload
+    needs:
+      - setup
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - build: linux
+            os: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ github.ref || github.run_id }}
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - name: Build
+        uses: actions-rs/cargo@v1
+        with:
+          use-cross: true
+          command: build
+          args: --verbose --release --target ${{ matrix.target }}
+      - name: Extract changelog content
+        id: extract_changelog
+        shell: bash
+        run: |
+          version="${{ needs.setup.outputs.version }}"
+          echo "${{ needs.setup.outputs.info }}" > changelog_output.txt
+          awk "/^## \\[$version\\]/ {flag=1; next} /^## \\[/ && flag {flag=0} flag" CHANGELOG.md >> changelog_output.txt
+      - name: Display extracted content
+        run: cat changelog_output.txt
+      - name: Release
+        if: ${{ needs.setup.outputs.dry_run == 'false'}}
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: changelog_output.txt
+  deploy-to-crates-io:
+    needs:
+      - setup
+      - build-and-upload
+    name: Deploy to crates.io
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ github.ref || github.run_id }}
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: taiki-e/cache-cargo-install-action@v2
+        with:
+          tool: cargo-release
+      - name: cargo publish dry run
+        if: ${{ needs.setup.outputs.dry_run == 'true'}}
+        run: cargo publish --dry-run
+      - name: cargo login
+        run: cargo login ${{ secrets.CRATES_IO_TOKEN }}
+      - name: "cargo release publish"
+        if: ${{ needs.setup.outputs.dry_run == 'false'}}
+        run: |-
+          cargo release \
+            publish \
+            --workspace \
+            --all-features \
+            --allow-branch HEAD \
+            --no-confirm \
+            --no-verify \
+            --execute

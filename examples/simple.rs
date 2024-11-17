@@ -1,10 +1,10 @@
 use bevy::prelude::*;
 use bevy_simple_scroll_view::*;
 
-const CLR_1: Color = Color::rgb(0.168, 0.168, 0.168);
-const CLR_2: Color = Color::rgb(0.109, 0.109, 0.109);
-const CLR_3: Color = Color::rgb(0.569, 0.592, 0.647);
-const CLR_4: Color = Color::rgb(0.902, 0.4, 0.004);
+const CLR_1: Color = Color::srgb(0.168, 0.168, 0.168);
+const CLR_2: Color = Color::srgb(0.109, 0.109, 0.109);
+const CLR_3: Color = Color::srgb(0.569, 0.592, 0.647);
+const CLR_4: Color = Color::srgb(0.902, 0.4, 0.004);
 
 fn main() {
     App::new()
@@ -15,62 +15,66 @@ fn main() {
 }
 
 fn prepare(mut commands: Commands) {
-    commands.spawn(Camera2dBundle::default());
+    commands.spawn(Camera2d::default());
     commands
-        .spawn(NodeBundle {
-            style: Style {
+        .spawn((
+            BackgroundColor(CLR_1),
+            Node {
                 width: Val::Percent(100.0),
                 height: Val::Percent(100.0),
                 padding: UiRect::all(Val::Px(15.0)),
                 ..default()
             },
-            background_color: CLR_1.into(),
-            ..default()
-        })
+        ))
         .with_children(|p| {
-            p.spawn(ButtonBundle {
-                style: Style {
-                    margin: UiRect::all(Val::Px(15.0)),
-                    padding: UiRect::all(Val::Px(15.0)),
-                    max_height: Val::Px(100.0),
-                    border: UiRect::all(Val::Px(3.0)),
-                    align_items: AlignItems::Center,
-                    ..default()
-                },
-                background_color: CLR_2.into(),
-                border_color: CLR_4.into(),
+            p.spawn(Node {
+                width: Val::Percent(20.0),
+                margin: UiRect::all(Val::Px(10.0)),
+                flex_direction: FlexDirection::Column,
                 ..default()
             })
             .with_children(|p| {
-                p.spawn(TextBundle::from_section(
-                    "Reset scroll",
-                    TextStyle {
-                        font_size: 25.0,
-                        color: CLR_4,
-                        ..default()
-                    },
-                ));
+                for btn_action in [ScrollButton::MoveToTop, ScrollButton::MoveToBottom] {
+                    p.spawn((
+                        Node {
+                            margin: UiRect::all(Val::Px(15.0)),
+                            padding: UiRect::all(Val::Px(15.0)),
+                            max_height: Val::Px(100.0),
+                            border: UiRect::all(Val::Px(3.0)),
+                            align_items: AlignItems::Center,
+                            ..default()
+                        },
+                        BackgroundColor(CLR_2),
+                        BorderColor(CLR_4),
+                        Button,
+                        btn_action.clone(),
+                    ))
+                    .with_children(|p| {
+                        p.spawn((
+                            Text::new(format!("{:#?}", btn_action)),
+                            TextFont {
+                                font_size: 25.0,
+                                ..default()
+                            },
+                            TextColor(CLR_4),
+                        ));
+                    });
+                }
             });
             p.spawn((
-                NodeBundle {
-                    style: Style {
-                        width: Val::Percent(80.0),
-                        margin: UiRect::all(Val::Px(15.0)),
-                        ..default()
-                    },
-                    background_color: CLR_2.into(),
+                Node {
+                    width: Val::Percent(80.0),
+                    margin: UiRect::all(Val::Px(15.0)),
                     ..default()
                 },
+                BackgroundColor(CLR_2),
                 ScrollView::default(),
             ))
             .with_children(|p| {
                 p.spawn((
-                    NodeBundle {
-                        style: Style {
-                            flex_direction: bevy::ui::FlexDirection::Column,
-                            width: Val::Percent(100.0),
-                            ..default()
-                        },
+                    Node {
+                        flex_direction: bevy::ui::FlexDirection::Column,
+                        width: Val::Percent(100.0),
                         ..default()
                     },
                     ScrollableContent::default(),
@@ -78,29 +82,26 @@ fn prepare(mut commands: Commands) {
                 .with_children(|scroll_area| {
                     for i in 0..21 {
                         scroll_area
-                            .spawn(NodeBundle {
-                                style: Style {
+                            .spawn((
+                                Node {
                                     min_width: Val::Px(200.0),
                                     margin: UiRect::all(Val::Px(15.0)),
                                     border: UiRect::all(Val::Px(5.0)),
                                     padding: UiRect::all(Val::Px(30.0)),
                                     ..default()
                                 },
-                                border_color: CLR_3.into(),
-                                ..default()
-                            })
+                                BorderColor(CLR_3),
+                            ))
                             .with_children(|p| {
-                                p.spawn(
-                                    TextBundle::from_section(
-                                        format!("Nr {}", i),
-                                        TextStyle {
-                                            font_size: 25.0,
-                                            color: CLR_3,
-                                            ..default()
-                                        },
-                                    )
-                                    .with_text_justify(JustifyText::Center),
-                                );
+                                p.spawn((
+                                    Text::new(format!("Nr {}", i)),
+                                    TextFont {
+                                        font_size: 25.0,
+                                        ..default()
+                                    },
+                                    TextColor(CLR_3),
+                                    TextLayout::new_with_justify(JustifyText::Center),
+                                ));
                             });
                     }
                 });
@@ -108,15 +109,26 @@ fn prepare(mut commands: Commands) {
         });
 }
 
+#[derive(Component, PartialEq, Debug, Clone, Copy)]
+enum ScrollButton {
+    MoveToTop,
+    MoveToBottom,
+}
+
 fn reset_scroll(
-    q: Query<(&Button, &Interaction), Changed<Interaction>>,
+    q: Query<(&Interaction, &ScrollButton), (Changed<Interaction>, With<Button>)>,
     mut scrolls_q: Query<&mut ScrollableContent>,
 ) {
-    for (_, interaction) in q.iter() {
-        if interaction == &Interaction::Pressed {
-            for mut scroll in scrolls_q.iter_mut() {
-                scroll.pos_y = 0.0;
-            }
+    let Ok(mut scroll) = scrolls_q.get_single_mut() else {
+        return;
+    };
+    for (interaction, action) in q.iter() {
+        if interaction != &Interaction::Pressed {
+            continue;
+        }
+        match action {
+            ScrollButton::MoveToTop => scroll.scroll_to_top(),
+            ScrollButton::MoveToBottom => scroll.scroll_to_bottom(),
         }
     }
 }
