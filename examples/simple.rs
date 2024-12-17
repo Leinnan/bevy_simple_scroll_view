@@ -15,7 +15,7 @@ fn main() {
 }
 
 fn prepare(mut commands: Commands) {
-    commands.spawn(Camera2d::default());
+    commands.spawn(Camera2d);
     commands
         .spawn((
             BackgroundColor(CLR_1),
@@ -47,7 +47,7 @@ fn prepare(mut commands: Commands) {
                         BackgroundColor(CLR_2),
                         BorderColor(CLR_4),
                         Button,
-                        btn_action.clone(),
+                        btn_action,
                     ))
                     .with_children(|p| {
                         p.spawn((
@@ -110,13 +110,14 @@ fn prepare(mut commands: Commands) {
 }
 
 #[derive(Component, PartialEq, Debug, Clone, Copy)]
+#[require(Button)]
 enum ScrollButton {
     MoveToTop,
     MoveToBottom,
 }
 
 fn reset_scroll(
-    q: Query<(&Interaction, &ScrollButton), (Changed<Interaction>, With<Button>)>,
+    q: Query<(&Interaction, &ScrollButton), Changed<Interaction>>,
     mut scrolls_q: Query<&mut ScrollableContent>,
 ) {
     let Ok(mut scroll) = scrolls_q.get_single_mut() else {

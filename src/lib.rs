@@ -8,7 +8,7 @@ use bevy::{
 /// A `Plugin` providing the systems and components required to make a ScrollView work.
 ///
 /// # Example
-/// ```
+/// ```no_run
 /// use bevy::prelude::*;
 /// use bevy_simple_scroll_view::*;
 ///
@@ -39,7 +39,7 @@ impl Plugin for ScrollViewPlugin {
 
 /// Root component of scroll, it should have clipped style.
 #[derive(Component, Debug, Reflect)]
-#[require(Interaction)]
+#[require(Interaction, Node)]
 pub struct ScrollView {
     /// Field which control speed of the scrolling.
     /// Could be negative number to implement invert scroll
@@ -57,10 +57,21 @@ impl Default for ScrollView {
 /// Component containing offset value of the scroll container to the parent.
 /// It is possible to update the field `pos_y` manually to move scrollview to desired location.
 #[derive(Component, Debug, Reflect, Default)]
+#[require(Node(scroll_view_node))]
 pub struct ScrollableContent {
     /// Scroll container offset to the `ScrollView`.
     pub pos_y: f32,
     pub max_scroll: f32,
+}
+
+pub fn scroll_view_node() -> Node {
+    Node {
+        overflow: Overflow::clip(),
+        align_items: AlignItems::Start,
+        align_self: AlignSelf::Stretch,
+        flex_direction: FlexDirection::Row,
+        ..default()
+    }
 }
 
 impl ScrollableContent {
@@ -77,11 +88,18 @@ impl ScrollableContent {
 }
 
 pub fn create_scroll_view(mut q: Query<&mut Node, Added<ScrollView>>) {
+    let Node {
+        overflow,
+        align_items,
+        align_self,
+        flex_direction,
+        ..
+    } = scroll_view_node();
     for mut style in q.iter_mut() {
-        style.overflow = Overflow::clip();
-        style.align_items = AlignItems::Start;
-        style.align_self = AlignSelf::Stretch;
-        style.flex_direction = FlexDirection::Row;
+        style.overflow = overflow;
+        style.align_items = align_items;
+        style.align_self = align_self;
+        style.flex_direction = flex_direction;
     }
 }
 
