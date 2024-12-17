@@ -36,5 +36,6 @@ Please keep PRs small and scoped to a single feature or fix.
 
 Bevy version | crate version
 --- | ---
+0.15 | 0.3
 0.14 | 0.2
 0.13 | 0.1
