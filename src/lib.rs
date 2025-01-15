@@ -128,13 +128,13 @@ fn update_size(
     mut content_q: Query<(&mut ScrollableContent, &ComputedNode), Changed<ComputedNode>>,
 ) {
     for (children, node) in q.iter_mut() {
-        let container_height = node.size().y;
+        let container_height = node.size().y * node.inverse_scale_factor();
         for &child in children.iter() {
             let Ok((mut scroll, node)) = content_q.get_mut(child) else {
                 continue;
             };
 
-            scroll.max_scroll = (node.size().y - container_height).max(0.0);
+            scroll.max_scroll = (node.size().y * node.inverse_scale_factor()- container_height).max(0.0);
             #[cfg(feature = "extra_logs")]
             info!(
                 "CONTAINER {}, max_scroll: {}",
