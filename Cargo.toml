@@ -1,10 +1,10 @@
 [package]
 name = "bevy_simple_scroll_view"
-version = "0.3.0"
+version = "0.3.1"
 edition = "2021"
-exclude = [".github/","wasm/", "record.gif"]
+exclude = [".github/", "wasm/", "record.gif"]
 categories = ["game-development", "gui"]
-keywords = ["bevy","ui"]
+keywords = ["bevy", "ui"]
 repository = "https://github.com/Leinnan/bevy_simple_scroll_view"
 homepage = "https://github.com/Leinnan/bevy_simple_scroll_view"
 license = "MIT OR Apache-2.0"

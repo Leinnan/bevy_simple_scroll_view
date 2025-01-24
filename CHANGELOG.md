@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## [0.3.1]
+
+## Fixed
+
+- Size calculation missmatch [#3](https://github.com/Leinnan/bevy_simple_scroll_view/issues/3)
+
 ## [0.3.0]
 
 ## Added
