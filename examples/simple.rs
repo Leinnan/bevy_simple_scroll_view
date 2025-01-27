@@ -1,6 +1,6 @@
 #![allow(missing_docs)]
 
-use bevy::picking::events::{Up, Pointer};
+use bevy::picking::events::{Pointer, Up};
 use bevy::prelude::*;
 use bevy_simple_scroll_view::*;
 
