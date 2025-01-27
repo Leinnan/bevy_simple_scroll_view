@@ -39,7 +39,7 @@ impl Plugin for ScrollViewPlugin {
 
 /// Root component of scroll, it should have clipped style.
 #[derive(Component, Debug, Reflect)]
-#[require(Interaction, Node)]
+#[require(Interaction, Node(scroll_view_node))]
 pub struct ScrollView {
     /// Field which control speed of the scrolling.
     /// Could be negative number to implement invert scroll
@@ -57,13 +57,40 @@ impl Default for ScrollView {
 /// Component containing offset value of the scroll container to the parent.
 /// It is possible to update the field `pos_y` manually to move scrollview to desired location.
 #[derive(Component, Debug, Reflect, Default)]
-#[require(Node(scroll_view_node))]
+#[require(Node(scroll_content_node))]
 pub struct ScrollableContent {
     /// Scroll container offset to the `ScrollView`.
     pub pos_y: f32,
+    /// Maximum value for the scroll. It is updated automatically based on the size of the children nodes.
     pub max_scroll: f32,
 }
 
+impl ScrollableContent {
+    /// Scrolls to the top of the scroll view.
+    pub fn scroll_to_top(&mut self) {
+        self.pos_y = 0.0;
+    }
+    /// Scrolls to the bottom of the scroll view.
+    pub fn scroll_to_bottom(&mut self) {
+        self.pos_y = -self.max_scroll;
+    }
+
+    /// Scrolls by a specified amount.
+    ///
+    /// # Parameters
+    /// - `value`: The amount to scroll vertically. Positive values scroll down,
+    ///   and negative values scroll up.
+    ///
+    /// Ensures the new position is clamped between the valid scroll range.
+    pub fn scroll_by(&mut self, value: f32) {
+        self.pos_y += value;
+        self.pos_y = self.pos_y.clamp(-self.max_scroll, 0.);
+    }
+}
+
+/// Creates a default scroll view node.
+///
+/// This function defines the visual and layout properties of a scrollable container.
 pub fn scroll_view_node() -> Node {
     Node {
         overflow: Overflow::clip(),
@@ -74,19 +101,19 @@ pub fn scroll_view_node() -> Node {
     }
 }
 
-impl ScrollableContent {
-    pub fn scroll_to_top(&mut self) {
-        self.pos_y = 0.0;
-    }
-    pub fn scroll_to_bottom(&mut self) {
-        self.pos_y = -self.max_scroll;
-    }
-    pub fn scroll_by(&mut self, value: f32) {
-        self.pos_y += value;
-        self.pos_y = self.pos_y.clamp(-self.max_scroll, 0.);
+/// Creates a default scroll content node.
+pub fn scroll_content_node() -> Node {
+    Node {
+        flex_direction: bevy::ui::FlexDirection::Column,
+        width: Val::Percent(100.0),
+        ..default()
     }
 }
 
+/// Applies the default scroll view style to newly added `ScrollView` components.
+///
+/// This function updates the style of all new `ScrollView` nodes with the default
+/// properties defined in `scroll_view_node`.
 pub fn create_scroll_view(mut q: Query<&mut Node, Added<ScrollView>>) {
     let Node {
         overflow,

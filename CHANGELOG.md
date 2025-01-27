@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## [0.3.2]
+
+## Added
+
+- `scroll_view_node` function with default values for `ScrollView` node
+- documentation to the code 
+
+## Fixed
+
+- `ScrollableContent` default Node values fix
+
 ## [0.3.1]
 
 ## Fixed
