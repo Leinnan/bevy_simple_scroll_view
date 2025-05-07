@@ -1,6 +1,6 @@
 #![allow(missing_docs)]
 
-use bevy::picking::events::{Pointer, Up};
+use bevy::picking::events::{Pointer, Released};
 use bevy::prelude::*;
 use bevy_simple_scroll_view::*;
 
@@ -22,7 +22,7 @@ fn setup(mut commands: Commands) {
         justify_content: JustifyContent::Center,
         min_width: Val::Px(200.0),
         margin: UiRect::all(Val::Px(10.0)),
-        border: UiRect::all(Val::Px(3.0)),
+        border: UiRect::all(Val::Px(5.0)),
         padding: UiRect::all(Val::Px(15.0)),
         ..default()
     };
@@ -75,10 +75,10 @@ fn setup(mut commands: Commands) {
         });
 }
 
-fn scroll_to_top(_t: Trigger<Pointer<Up>>, mut scroll: Single<&mut ScrollableContent>) {
+fn scroll_to_top(_t: Trigger<Pointer<Released>>, mut scroll: Single<&mut ScrollableContent>) {
     scroll.scroll_to_top();
 }
 
-fn scroll_to_bottom(_t: Trigger<Pointer<Up>>, mut scroll: Single<&mut ScrollableContent>) {
+fn scroll_to_bottom(_t: Trigger<Pointer<Released>>, mut scroll: Single<&mut ScrollableContent>) {
     scroll.scroll_to_bottom();
 }

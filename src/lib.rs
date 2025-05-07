@@ -39,7 +39,7 @@ impl Plugin for ScrollViewPlugin {
 
 /// Root component of scroll, it should have clipped style.
 #[derive(Component, Debug, Reflect)]
-#[require(Interaction, Node(scroll_view_node))]
+#[require(Interaction, Node = scroll_view_node())]
 pub struct ScrollView {
     /// Field which control speed of the scrolling.
     /// Could be negative number to implement invert scroll
@@ -57,7 +57,7 @@ impl Default for ScrollView {
 /// Component containing offset value of the scroll container to the parent.
 /// It is possible to update the field `pos_y` manually to move scrollview to desired location.
 #[derive(Component, Debug, Reflect, Default)]
-#[require(Node(scroll_content_node))]
+#[require(Node = scroll_content_node())]
 pub struct ScrollableContent {
     /// Scroll container offset to the `ScrollView`.
     pub pos_y: f32,
@@ -140,7 +140,7 @@ fn input_mouse_pressed_move(
             if interaction != Interaction::Pressed {
                 continue;
             }
-            for &child in children.iter() {
+            for child in children.iter() {
                 let Ok(mut scroll) = content_q.get_mut(child) else {
                     continue;
                 };
@@ -156,7 +156,7 @@ fn update_size(
 ) {
     for (children, scroll_view_node) in q.iter_mut() {
         let container_height = scroll_view_node.size().y * scroll_view_node.inverse_scale_factor();
-        for &child in children.iter() {
+        for child in children.iter() {
             let Ok((mut scroll, node)) = content_q.get_mut(child) else {
                 continue;
             };
@@ -186,7 +186,7 @@ fn input_touch_pressed_move(
             if interaction != Interaction::Pressed {
                 continue;
             }
-            for &child in children.iter() {
+            for child in children.iter() {
                 let Ok(mut scroll) = content_q.get_mut(child) else {
                     continue;
                 };
@@ -217,7 +217,7 @@ fn scroll_events(
             #[cfg(feature = "extra_logs")]
             info!("Scroolling by {:#?}: {} movement", ev.unit, y);
 
-            for &child in children.iter() {
+            for child in children.iter() {
                 let Ok(mut scroll) = content_q.get_mut(child) else {
                     continue;
                 };

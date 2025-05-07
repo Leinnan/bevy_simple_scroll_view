@@ -1,6 +1,6 @@
 [package]
 name = "bevy_simple_scroll_view"
-version = "0.3.2"
+version = "0.4.0"
 edition = "2021"
 exclude = [".github/", "wasm/", "record.gif"]
 categories = ["game-development", "gui"]
@@ -11,17 +11,17 @@ license = "MIT OR Apache-2.0"
 description = "Simple to use plugin implementing ScrollView into Bevy engine."
 
 [dependencies.bevy]
-version = "0.15"
+version = "0.16"
 default-features = false
 features = ["bevy_ui", "bevy_asset", "bevy_text"]
 
 [dev-dependencies.bevy]
-version = "0.15"
+version = "0.16"
 default-features = true
 
 [features]
 default = []
-extra_logs = []
+extra_logs = ["bevy/bevy_log"]
 
 [lints.rust]
 missing_docs = "warn"
