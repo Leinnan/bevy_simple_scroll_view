@@ -1,9 +1,6 @@
 #![doc = include_str!("../README.md")]
 
-use bevy::{
-    input::mouse::{MouseMotion, MouseWheel},
-    prelude::*,
-};
+use bevy::{input::mouse::MouseWheel, prelude::*};
 
 /// A `Plugin` providing the systems and components required to make a ScrollView work.
 ///
@@ -27,13 +24,14 @@ impl Plugin for ScrollViewPlugin {
                 (
                     create_scroll_view,
                     update_size,
-                    input_mouse_pressed_move,
-                    input_touch_pressed_move,
                     scroll_events,
+                    fling_update,
                     scroll_update,
                 )
                     .chain(),
-            );
+            )
+            .add_observer(on_drag)
+            .add_observer(on_drag_end);
     }
 }
 
@@ -44,12 +42,21 @@ pub struct ScrollView {
     /// Field which control speed of the scrolling.
     /// Could be negative number to implement invert scroll
     pub scroll_speed: f32,
+    /// Amount of friction to apply to slow down the fling
+    pub friction: f32,
+    /// Current vertical velocity
+    velocity: f32,
+    /// Drag delta for fling
+    drag_delta: Option<DragDelta>,
 }
 
 impl Default for ScrollView {
     fn default() -> Self {
         Self {
             scroll_speed: 1200.0,
+            friction: 4.2,
+            velocity: 0.0,
+            drag_delta: None,
         }
     }
 }
@@ -130,26 +137,6 @@ pub fn create_scroll_view(mut q: Query<&mut Node, Added<ScrollView>>) {
     }
 }
 
-fn input_mouse_pressed_move(
-    mut motion_evr: EventReader<MouseMotion>,
-    mut q: Query<(&Children, &Interaction), With<ScrollView>>,
-    mut content_q: Query<&mut ScrollableContent>,
-) {
-    for evt in motion_evr.read() {
-        for (children, &interaction) in q.iter_mut() {
-            if interaction != Interaction::Pressed {
-                continue;
-            }
-            for child in children.iter() {
-                let Ok(mut scroll) = content_q.get_mut(child) else {
-                    continue;
-                };
-                scroll.scroll_by(evt.delta.y);
-            }
-        }
-    }
-}
-
 fn update_size(
     mut q: Query<(&Children, &ComputedNode), With<ScrollView>>,
     mut content_q: Query<(&mut ScrollableContent, &ComputedNode), Changed<ComputedNode>>,
@@ -172,27 +159,56 @@ fn update_size(
     }
 }
 
-fn input_touch_pressed_move(
-    touches: Res<Touches>,
-    mut q: Query<(&Children, &Interaction), With<ScrollView>>,
-    mut content_q: Query<&mut ScrollableContent>,
-) {
-    for t in touches.iter() {
-        let Some(touch) = touches.get_pressed(t.id()) else {
-            continue;
-        };
+#[derive(Debug, Reflect)]
+struct DragDelta {
+    /// Sum of drag deltas since last reset
+    pub diff: Vec2,
+    /// Last time when drag_delta was added to velocity and reset
+    pub time: f32,
+}
 
-        for (children, &interaction) in q.iter_mut() {
-            if interaction != Interaction::Pressed {
-                continue;
+fn on_drag(
+    mut drag: Trigger<Pointer<Drag>>,
+    mut q: Query<(&mut ScrollView, &mut Children)>,
+    mut content_q: Query<&mut ScrollableContent>,
+    time: Res<Time>,
+) {
+    if let Ok((mut view, children)) = q.get_mut(drag.target()) {
+        if let Some(mut delta) = view.drag_delta.take() {
+            let elapsed = time.elapsed_secs() - delta.time;
+            if elapsed <= 0. {
+                delta.diff += drag.delta;
+                view.drag_delta = Some(delta);
+            } else {
+                view.velocity = (view.velocity + delta.diff.y / elapsed) / 2.0;
+                view.drag_delta = Some(DragDelta {
+                    diff: Vec2::new(0., 0.),
+                    time: time.elapsed_secs(),
+                });
             }
-            for child in children.iter() {
-                let Ok(mut scroll) = content_q.get_mut(child) else {
-                    continue;
-                };
-                scroll.scroll_by(touch.delta().y);
-            }
+        } else {
+            view.drag_delta = Some(DragDelta {
+                diff: drag.delta,
+                time: time.elapsed_secs(),
+            });
         }
+        for child in children.iter() {
+            let Ok(mut scroll) = content_q.get_mut(child) else {
+                continue;
+            };
+            scroll.scroll_by(drag.delta.y);
+        }
+        drag.propagate(false);
+    }
+}
+
+fn on_drag_end(
+    mut drag: Trigger<Pointer<DragEnd>>,
+    mut q_view: Query<&mut ScrollView>,
+) {
+    if let Ok(mut view) = q_view.get_mut(drag.target()) {
+        view.drag_delta = None;
+        drag.propagate(false);
     }
 }
 
@@ -231,4 +247,45 @@ fn scroll_update(mut q: Query<(&ScrollableContent, &mut Node), Changed<Scrollabl
     for (scroll, mut style) in q.iter_mut() {
         style.top = Val::Px(scroll.pos_y);
     }
+}
+
+fn fling_update(
+    mut q: Query<(&Children, &mut ScrollView)>,
+    mut content_q: Query<&mut ScrollableContent>,
+    time: Res<Time>,
+) {
+    for (children, mut view) in q.iter_mut() {
+        if view.drag_delta.is_some() {
+            continue;
+        }
+        if view.velocity.abs() > 1. {
+            for child in children.iter() {
+                let Ok(mut scroll) = content_q.get_mut(child) else {
+                    continue;
+                };
+                let (position, _) = calc_position_and_velocity(
+                    scroll.pos_y,
+                    view.velocity,
+                    -view.friction,
+                    time.delta_secs(),
+                );
+                scroll.pos_y = position.clamp(-scroll.max_scroll, 0.);
+            }
+            view.velocity = calc_position_and_velocity(
+                0.,
+                view.velocity,
+                -view.friction,
+                time.delta_secs(),
+            ).1;
+        } else {
+            view.velocity = 0.0;
+        }
+    }
+}
+
+fn calc_position_and_velocity(position: f32, velocity: f32, friction: f32, delta_t: f32) -> (f32, f32) {
+    (
+        position - velocity / friction + velocity / friction * (friction * delta_t).exp(),
+        velocity * (delta_t * friction).exp(),
+    )
 }
