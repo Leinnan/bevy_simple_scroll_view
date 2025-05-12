@@ -1,9 +1,6 @@
 #![doc = include_str!("../README.md")]
 
-use bevy::{
-    input::mouse::{MouseMotion, MouseWheel},
-    prelude::*,
-};
+use bevy::{input::mouse::MouseWheel, prelude::*};
 
 /// A `Plugin` providing the systems and components required to make a ScrollView work.
 ///
@@ -27,13 +24,12 @@ impl Plugin for ScrollViewPlugin {
                 (
                     create_scroll_view,
                     update_size,
-                    input_mouse_pressed_move,
-                    input_touch_pressed_move,
                     scroll_events,
                     scroll_update,
                 )
                     .chain(),
-            );
+            )
+            .add_observer(on_drag);
     }
 }
 
@@ -130,26 +126,6 @@ pub fn create_scroll_view(mut q: Query<&mut Node, Added<ScrollView>>) {
     }
 }
 
-fn input_mouse_pressed_move(
-    mut motion_evr: EventReader<MouseMotion>,
-    mut q: Query<(&Children, &Interaction), With<ScrollView>>,
-    mut content_q: Query<&mut ScrollableContent>,
-) {
-    for evt in motion_evr.read() {
-        for (children, &interaction) in q.iter_mut() {
-            if interaction != Interaction::Pressed {
-                continue;
-            }
-            for child in children.iter() {
-                let Ok(mut scroll) = content_q.get_mut(child) else {
-                    continue;
-                };
-                scroll.scroll_by(evt.delta.y);
-            }
-        }
-    }
-}
-
 fn update_size(
     mut q: Query<(&Children, &ComputedNode), With<ScrollView>>,
     mut content_q: Query<(&mut ScrollableContent, &ComputedNode), Changed<ComputedNode>>,
@@ -172,27 +148,19 @@ fn update_size(
     }
 }
 
-fn input_touch_pressed_move(
-    touches: Res<Touches>,
-    mut q: Query<(&Children, &Interaction), With<ScrollView>>,
+fn on_drag(
+    mut drag: Trigger<Pointer<Drag>>,
+    mut q: Query<&Children, With<ScrollView>>,
     mut content_q: Query<&mut ScrollableContent>,
 ) {
-    for t in touches.iter() {
-        let Some(touch) = touches.get_pressed(t.id()) else {
-            continue;
-        };
-
-        for (children, &interaction) in q.iter_mut() {
-            if interaction != Interaction::Pressed {
+    if let Ok(children) = q.get_mut(drag.target()) {
+        for child in children.iter() {
+            let Ok(mut scroll) = content_q.get_mut(child) else {
                 continue;
-            }
-            for child in children.iter() {
-                let Ok(mut scroll) = content_q.get_mut(child) else {
-                    continue;
-                };
-                scroll.scroll_by(touch.delta().y);
-            }
+            };
+            scroll.scroll_by(drag.delta.y);
         }
+        drag.propagate(false);
     }
 }
 
