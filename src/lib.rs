@@ -95,7 +95,6 @@ pub fn scroll_view_node() -> Node {
     Node {
         overflow: Overflow::clip(),
         align_items: AlignItems::Start,
-        align_self: AlignSelf::Stretch,
         flex_direction: FlexDirection::Row,
         ..default()
     }
@@ -118,14 +117,12 @@ pub fn create_scroll_view(mut q: Query<&mut Node, Added<ScrollView>>) {
     let Node {
         overflow,
         align_items,
-        align_self,
         flex_direction,
         ..
     } = scroll_view_node();
     for mut style in q.iter_mut() {
         style.overflow = overflow;
         style.align_items = align_items;
-        style.align_self = align_self;
         style.flex_direction = flex_direction;
     }
 }
