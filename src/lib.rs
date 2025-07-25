@@ -155,7 +155,10 @@ fn update_size(
     mut content_q: Query<(&mut ScrollableContent, &ComputedNode), Changed<ComputedNode>>,
 ) {
     for (children, scroll_view_node) in q.iter_mut() {
-        let container_height = scroll_view_node.size().y * scroll_view_node.inverse_scale_factor();
+        let container_height = (scroll_view_node.size().y
+            - scroll_view_node.padding.top
+            - scroll_view_node.padding.bottom)
+            * scroll_view_node.inverse_scale_factor();
         for child in children.iter() {
             let Ok((mut scroll, node)) = content_q.get_mut(child) else {
                 continue;
